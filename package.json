@@ -1,0 +1,29 @@
+{
+  "name": "romm-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for RomM — self-hosted game and ROM management platform",
+  "keywords": ["mcp", "romm", "rom", "emulation", "retro-gaming", "model-context-protocol"],
+  "homepage": "https://github.com/srxz/romm-mcp",
+  "bugs": {
+    "url": "https://github.com/srxz/romm-mcp/issues"
+  },
+  "license": "MIT",
+  "author": "Srxz",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
