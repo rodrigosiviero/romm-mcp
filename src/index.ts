@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * RomM MCP Server — MCP server for the RomM game/ROM management platform.
  *
