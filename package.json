@@ -1,8 +1,16 @@
 {
   "name": "romm-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for RomM — self-hosted game and ROM management platform",
-  "keywords": ["mcp", "romm", "rom", "emulation", "retro-gaming", "model-context-protocol", "mcp-server"],
+  "keywords": [
+    "mcp",
+    "romm",
+    "rom",
+    "emulation",
+    "retro-gaming",
+    "model-context-protocol",
+    "mcp-server"
+  ],
   "homepage": "https://github.com/rodrigosivero/romm-mcp",
   "bugs": {
     "url": "https://github.com/rodrigosivero/romm-mcp/issues"
