@@ -11,13 +11,13 @@
     "model-context-protocol",
     "mcp-server"
   ],
-  "homepage": "https://github.com/rodrigosivero/romm-mcp",
+  "homepage": "https://github.com/rodrigosiviero/romm-mcp",
   "bugs": {
-    "url": "https://github.com/rodrigosivero/romm-mcp/issues"
+    "url": "https://github.com/rodrigosiviero/romm-mcp/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rodrigosivero/romm-mcp.git"
+    "url": "git+https://github.com/rodrigosiviero/romm-mcp.git"
   },
   "license": "MIT",
   "author": "Srxz",
