@@ -4,6 +4,10 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server for [
 
 Give your AI assistant full access to browse, search, and manage your retro game library.
 
+**Supports both transports:**
+- **stdio** — local CLI usage (default)
+- **Streamable HTTP** — Docker / remote / multi-client
+
 ## Features
 
 - **Browse** your full ROM library with pagination, filtering, and sorting
@@ -26,12 +30,28 @@ Give your AI assistant full access to browse, search, and manage your retro game
 
 ## Installation
 
+### Option 1: npx (no install needed)
+
 ```bash
-git clone https://github.com/srxz/romm-mcp.git
+npx romm-mcp
+```
+
+### Option 2: Clone and build
+
+```bash
+git clone https://github.com/rodrigosiviero/romm-mcp.git
 cd romm-mcp
 npm install
 npm run build
 ```
+
+### Option 3: Docker
+
+```bash
+docker compose up -d
+```
+
+See [Docker](#docker) section below for details.
 
 ## Configuration
 
@@ -39,8 +59,11 @@ npm run build
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ROMM_BASE_URL` | Yes | Your RomM instance URL (e.g. `http://192.168.15.97:5500`) |
-| `ROMM_API_KEY` | Yes | RomM API key (generate one in RomM → Settings → API Keys) |
+| `ROMM_BASE_URL` | Yes | Your RomM instance URL (e.g. `http://romm.local:5500`) |
+| `ROMM_API_KEY` | Yes | RomM API key (generate in RomM → Settings → API Keys) |
+| `MCP_TRANSPORT` | No | `stdio` (default) or `http` for Streamable HTTP mode |
+| `MCP_PORT` | No | HTTP server port (default `3000`, HTTP mode only) |
+| `MCP_HOST` | No | HTTP bind address (default `0.0.0.0`, HTTP mode only) |
 
 ### Getting Your API Key
 
@@ -49,47 +72,15 @@ npm run build
 3. Click **Generate Key**
 4. Copy the `rmm_...` token
 
-### Usage with Claude Desktop
+## Usage
 
-Add to your `claude_desktop_config.json`:
+### stdio Transport (Local)
 
-```json
-{
-  "mcpServers": {
-    "romm": {
-      "command": "node",
-      "args": ["/path/to/romm-mcp/dist/index.js"],
-      "env": {
-        "ROMM_BASE_URL": "http://your-romm-instance:5500",
-        "ROMM_API_KEY": "rmm_your_api_key_here"
-      }
-    }
-  }
-}
-```
+For Claude Desktop, Cursor, CoPaw, and other local MCP clients.
 
-### Usage with CoPaw / OpenClaw
+#### Claude Desktop
 
-Add to your `agent.json` under `mcp.clients`:
-
-```json
-{
-  "romm": {
-    "name": "romm",
-    "description": "RomM MCP server - game and ROM management",
-    "enabled": true,
-    "transport": "stdio",
-    "command": "node",
-    "args": ["/path/to/romm-mcp/dist/index.js"],
-    "env": {
-      "ROMM_BASE_URL": "http://your-romm-instance:5500",
-      "ROMM_API_KEY": "rmm_your_api_key_here"
-    }
-  }
-}
-```
-
-### Usage with npx (no clone needed)
+Add to `claude_desktop_config.json`:
 
 ```json
 {
@@ -106,7 +97,99 @@ Add to your `agent.json` under `mcp.clients`:
 }
 ```
 
-> **Note:** npx usage requires publishing to npm first.
+#### CoPaw / OpenClaw
+
+Add to `agent.json` under `mcp.clients`:
+
+```json
+{
+  "romm": {
+    "name": "romm",
+    "description": "RomM MCP server",
+    "enabled": true,
+    "transport": "stdio",
+    "command": "npx",
+    "args": ["-y", "romm-mcp"],
+    "env": {
+      "ROMM_BASE_URL": "http://your-romm-instance:5500",
+      "ROMM_API_KEY": "rmm_your_api_key_here"
+    }
+  }
+}
+```
+
+### Streamable HTTP Transport (Remote / Docker)
+
+For remote access, Docker deployments, or sharing one MCP server with multiple clients.
+
+#### Local HTTP
+
+```bash
+MCP_TRANSPORT=http MCP_PORT=3000 \
+ROMM_BASE_URL=http://your-romm-instance:5500 \
+ROMM_API_KEY=rmm_your_api_key_here \
+npx romm-mcp
+```
+
+Then connect your client:
+
+```json
+{
+  "mcpServers": {
+    "romm": {
+      "type": "streamable-http",
+      "url": "http://localhost:3000/mcp"
+    }
+  }
+}
+```
+
+#### Docker
+
+Create a `.env` file:
+
+```env
+ROMM_BASE_URL=http://host.docker.internal:5500
+ROMM_API_KEY=rmm_your_api_key_here
+```
+
+Then:
+
+```bash
+docker compose up -d
+```
+
+Or use the published image directly:
+
+```bash
+docker run -d \
+  --name romm-mcp \
+  -p 3000:3000 \
+  -e ROMM_BASE_URL=http://host.docker.internal:5500 \
+  -e ROMM_API_KEY=rmm_your_api_key_here \
+  ghcr.io/srxz/romm-mcp:latest
+```
+
+### Docker Compose (full example)
+
+```yaml
+services:
+  romm-mcp:
+    image: ghcr.io/srxz/romm-mcp:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - MCP_TRANSPORT=http
+      - MCP_PORT=3000
+      - ROMM_BASE_URL=http://host.docker.internal:5500
+      - ROMM_API_KEY=rmm_your_api_key_here
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+```
 
 ## Tools
 
@@ -179,8 +262,11 @@ npm install
 # Build
 npm run build
 
-# Run locally (requires env vars)
+# Run with stdio (default)
 ROMM_BASE_URL=http://localhost:5500 ROMM_API_KEY=rmm_xxx node dist/index.js
+
+# Run with HTTP
+MCP_TRANSPORT=http ROMM_BASE_URL=http://localhost:5500 ROMM_API_KEY=rmm_xxx node dist/index.js
 ```
 
 ## Architecture
@@ -188,16 +274,20 @@ ROMM_BASE_URL=http://localhost:5500 ROMM_API_KEY=rmm_xxx node dist/index.js
 ```
 src/
 ├── client.ts    # RomM REST API client (fetch-based, zero deps)
-└── index.ts     # MCP server with 15 tools
+├── server.ts    # MCP server with all tools (shared between transports)
+└── index.ts     # Entry point — auto-detects stdio vs HTTP
 ```
 
 The API client is a thin wrapper over the [RomM REST API](https://docs.romm.app/API-and-Development/API-Reference/) (OpenAPI 3.1.0). It uses native `fetch` — no external HTTP library needed.
+
+In HTTP mode, the server uses [Hono](https://hono.dev/) with the stateless `WebStandardStreamableHTTPServerTransport` — a fresh MCP server is created per request, making it safe for Docker and multi-client scenarios.
 
 ## Compatibility
 
 - RomM v4.x+ (tested with v4.8.1)
 - Node.js >= 20 (uses native `fetch`)
-- Any MCP-compatible client (Claude Desktop, CoPaw, Cursor, etc.)
+- Any MCP-compatible client (Claude Desktop, CoPaw, Cursor, Windsurf, etc.)
+- MCP Streamable HTTP spec (`2025-03-26`)
 
 ## License
 

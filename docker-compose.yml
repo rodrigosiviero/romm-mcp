@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  romm-mcp:
+    build: .
+    # Or use the published image:
+    # image: ghcr.io/srxz/romm-mcp:latest
+    ports:
+      - "${MCP_PORT:-3000}:3000"
+    environment:
+      - MCP_TRANSPORT=http
+      - MCP_PORT=3000
+      - ROMM_BASE_URL=${ROMM_BASE_URL:-http://host.docker.internal:5500}
+      - ROMM_API_KEY=${ROMM_API_KEY:?ROMM_API_KEY is required}
+    restart: unless-stopped
