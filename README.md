@@ -167,7 +167,7 @@ docker run -d \
   -p 3000:3000 \
   -e ROMM_BASE_URL=http://host.docker.internal:5500 \
   -e ROMM_API_KEY=rmm_your_api_key_here \
-  ghcr.io/srxz/romm-mcp:latest
+  ghcr.io/rodrigosiviero/romm-mcp:main
 ```
 
 ### Docker Compose (full example)
@@ -175,7 +175,7 @@ docker run -d \
 ```yaml
 services:
   romm-mcp:
-    image: ghcr.io/srxz/romm-mcp:latest
+    image: ghcr.io/rodrigosiviero/romm-mcp:main
     ports:
       - "3000:3000"
     environment:
