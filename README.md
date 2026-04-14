@@ -185,7 +185,7 @@ services:
       - ROMM_API_KEY=rmm_your_api_key_here
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "-O-", "http://127.0.0.1:3000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
