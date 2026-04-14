@@ -19,6 +19,7 @@ import { RomMClient } from "./client.js";
 // ════════════════════════════════════════════════════════════
 
 export function createServer(): McpServer {
+  const DEBUG = process.env.ROMM_DEBUG === "1" || process.env.ROMM_DEBUG === "true";
   const client = new RomMClient();
 
   const server = new McpServer({
@@ -26,10 +27,16 @@ export function createServer(): McpServer {
     version: "1.0.0",
   });
 
+  if (DEBUG) {
+    console.error("[romm-server] MCP server created, registering tools...");
+  }
+
   // ─── romm_stats ──────────────────────────────────────────
 
   server.tool("romm_stats", "Get RomM library statistics — total platforms, ROMs, saves, states, screenshots, and total file size.", {}, async () => {
+    if (DEBUG) console.error("[romm-server] Tool called: romm_stats");
     const stats = await client.stats();
+    if (DEBUG) console.error("[romm-server] romm_stats result received");
     const bytes = stats.TOTAL_FILESIZE_BYTES || 0;
     const gb = (bytes / (1024 ** 3)).toFixed(1);
     return {

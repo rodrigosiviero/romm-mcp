@@ -2,8 +2,15 @@
  * RomM API client - handles all HTTP communication with the RomM instance.
  */
 
+const DEBUG = process.env.ROMM_DEBUG === "1" || process.env.ROMM_DEBUG === "true";
+
 const BASE_URL = process.env.ROMM_BASE_URL || "";
 const API_KEY = process.env.ROMM_API_KEY || "";
+
+if (DEBUG) {
+  console.error("[romm-client] INIT — BASE_URL:", BASE_URL ? `${BASE_URL.substring(0, 30)}...` : "(empty)");
+  console.error("[romm-client] INIT — API_KEY:", API_KEY ? `${API_KEY.substring(0, 8)}...` : "(empty)");
+}
 
 if (!BASE_URL) {
   console.error("Error: ROMM_BASE_URL environment variable is required");
@@ -37,10 +44,39 @@ export class RomMClient {
       headers["Content-Type"] = "application/json";
     }
 
-    const resp = await fetch(url, { ...options, headers });
+    if (DEBUG) {
+      console.error(`[romm-client] → ${options.method || "GET"} ${url}`);
+      if (options.body) {
+        const bodyPreview = typeof options.body === "string" ? options.body.substring(0, 500) : String(options.body);
+        console.error(`[romm-client] → Body: ${bodyPreview}`);
+      }
+    }
+
+    const startTime = Date.now();
+    let resp: Response;
+
+    try {
+      resp = await fetch(url, { ...options, headers });
+    } catch (fetchErr: any) {
+      if (DEBUG) {
+        console.error(`[romm-client] ✗ FETCH ERROR after ${Date.now() - startTime}ms:`, fetchErr.message);
+        console.error(`[romm-client] ✗ URL was: ${url}`);
+        console.error(`[romm-client] ✗ Possible causes: RomM not reachable, DNS failure, wrong URL, timeout`);
+      }
+      throw new Error(`RomM API fetch failed: ${fetchErr.message} [${options.method || "GET"} ${url}]`);
+    }
+
+    if (DEBUG) {
+      console.error(`[romm-client] ← ${resp.status} ${resp.statusText} (${Date.now() - startTime}ms)`);
+      const ct = resp.headers.get("content-type") || "(none)";
+      console.error(`[romm-client] ← Content-Type: ${ct}`);
+    }
 
     if (!resp.ok) {
       const text = await resp.text().catch(() => "");
+      if (DEBUG) {
+        console.error(`[romm-client] ✗ ERROR BODY: ${text.substring(0, 1000)}`);
+      }
       throw new Error(`RomM API ${resp.status}: ${text || resp.statusText} [${options.method || "GET"} ${path}]`);
     }
 
