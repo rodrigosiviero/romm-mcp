@@ -64,6 +64,7 @@ See [Docker](#docker) section below for details.
 | `MCP_TRANSPORT` | No | `stdio` (default) or `http` for Streamable HTTP mode |
 | `MCP_PORT` | No | HTTP server port (default `3000`, HTTP mode only) |
 | `MCP_HOST` | No | HTTP bind address (default `0.0.0.0`, HTTP mode only) |
+| `ROMM_DEBUG` | No | Sets to 1 for debug logs |
 
 ### Getting Your API Key
 
